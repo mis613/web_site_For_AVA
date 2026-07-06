@@ -38,6 +38,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 const allowedOrigins = [
+  'https://frontend-ava-b60g.onrender.com',
   process.env.FRONTEND_URL,
   'http://localhost:3000',
   'http://127.0.0.1:3000',
@@ -91,6 +92,10 @@ app.use('/api/admin/contact', adminContactRoutes);
 app.use('/api/uploads', uploadLimiter, uploadRoutes);
 app.use('/api', mediaRoutes);
 app.use('/api/chat', chatbotLimiter, chatbotRoutes);
+
+app.get('/', (req, res) => {
+  res.send('Backend is running');
+});
 
 app.use(notFound);
 app.use(errorHandler);
