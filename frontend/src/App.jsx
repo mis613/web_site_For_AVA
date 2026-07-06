@@ -33,19 +33,19 @@ export default function App() {
   return (
     <Suspense fallback={<div className="py-16"><div className="container-page"><LoadingState /></div></div>}>
       <Routes>
-        <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogDetail />} />
-        <Route path="/achievements" element={<Achievements />} />
-        <Route path="/information" element={<Information />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/careers" element={<Careers />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="about" element={<About />} />
+          <Route path="services" element={<Services />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:slug" element={<BlogDetail />} />
+          <Route path="achievements" element={<Achievements />} />
+          <Route path="information" element={<Information />} />
+          <Route path="team" element={<Team />} />
+          <Route path="careers" element={<Careers />} />
+          <Route path="gallery" element={<Gallery />} />
+          <Route path="privacy-policy" element={<PrivacyPolicy />} />
         </Route>
         <Route path="/admin/login" element={<Login />} />
         <Route
