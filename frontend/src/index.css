@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+body {
+  @apply bg-background text-ink antialiased;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-title {
+    @apply text-3xl font-semibold tracking-tight text-ink sm:text-4xl lg:text-5xl;
+    line-height: 1.15;
+  }
+
+  .section-subtitle {
+    @apply mt-4 max-w-3xl text-[1.06rem] leading-7 text-muted;
+  }
+
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-8 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition duration-300;
+  }
+
+  .card:hover {
+    border-color: #9B8BB8;
+  }
+
+  .service-card {
+    position: relative;
+    transform: scale(1);
+    transform-origin: center center;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    will-change: transform;
+    isolation: isolate;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .service-card:hover {
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      border-color: rgba(155, 139, 184, 0.92);
+      z-index: 2;
+    }
+  }
+
+  @media (hover: none) {
+    .service-card {
+      transition: none;
+    }
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3.5 text-base font-semibold text-white transition duration-300;
+    background-color: #581C87;
+  }
+
+  .btn-primary:hover {
+    background-color: #ddb85f;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border bg-white px-6 py-3.5 text-base font-semibold transition duration-300;
+    border-color: #9B8BB8;
+    color: #01040b;
+  }
+
+  .btn-secondary:hover {
+    background-color: #ddb85f;
+    border-color: #060112;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3.5 text-base font-semibold transition duration-300;
+    background-color: #4c1d95;
+    color: #ffffff;
+  }
+
+  .btn-accent:hover {
+    background-color: #c99a3e;
+    box-shadow: 0 6px 18px rgba(76, 29, 149, 0.16);
+  }
+
+  .input {
+    @apply w-full rounded-xl border bg-white px-4 py-3.5 text-base text-ink outline-none ring-0 transition duration-300;
+    border-color: #E5E7EB;
+  }
+
+  .input:focus {
+    border-color: #9B8BB8;
+    box-shadow: 0 0 0 4px rgba(155, 139, 184, 0.14);
+  }
+
+  .label {
+    @apply mb-2 block text-sm font-medium text-ink;
+  }
+}
