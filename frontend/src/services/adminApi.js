@@ -1,6 +1,6 @@
 import { api } from './api';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function handleAuthFailure(message) {
   const normalized = String(message || '').toLowerCase();
@@ -25,7 +25,7 @@ function getAuthHeaders() {
 function uploadMultipart(path, formData, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${BASE_URL}${path}`);
+    xhr.open('POST', `${API_BASE_URL}${path}`);
 
     Object.entries(getAuthHeaders()).forEach(([key, value]) => {
       xhr.setRequestHeader(key, value);

@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function handleAuthFailure(message) {
   const normalized = String(message || '').toLowerCase();
@@ -24,13 +24,13 @@ async function request(path, options = {}) {
   };
 
   if (import.meta.env.DEV) {
-    console.debug('[API request]', `${BASE_URL}${path}`, {
+    console.debug('[API request]', `${API_BASE_URL}${path}`, {
       method: options.method || 'GET',
       hasBody: Boolean(options.body)
     });
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     headers,
     ...options
   });
@@ -38,7 +38,7 @@ async function request(path, options = {}) {
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     if (import.meta.env.DEV) {
-      console.error('[API response error]', `${BASE_URL}${path}`, {
+      console.error('[API response error]', `${API_BASE_URL}${path}`, {
         status: response.status,
         body: data
       });
