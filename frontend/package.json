@@ -9,8 +9,11 @@
     "preview": "node ./node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
+    "axe-core": "^4.12.1",
     "dompurify": "^3.4.11",
     "framer-motion": "^11.11.17",
+    "lighthouse": "^13.4.0",
+    "playwright": "^1.61.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.28.0"

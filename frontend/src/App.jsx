@@ -49,7 +49,7 @@ export default function App() {
         </Route>
         <Route path="/admin/login" element={<Login />} />
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <ProtectedRoute>
               <Dashboard />

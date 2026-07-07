@@ -14,7 +14,13 @@ const storage = multer.diskStorage({
   }
 });
 
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png']);
+const allowedMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime'
+]);
 
 const upload = multer({
   storage,
@@ -23,7 +29,7 @@ const upload = multer({
   },
   fileFilter: (_req, file, cb) => {
     if (!allowedMimeTypes.has(file.mimetype)) {
-      return cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'file'));
+      return cb(new Error('Unsupported file type. Please upload a JPG, PNG, MP4, WebM, or MOV file.'));
     }
 
     cb(null, true);
@@ -32,6 +38,29 @@ const upload = multer({
 
 const router = Router();
 
-router.post('/', protect, adminOnly, upload.single('file'), uploadFile);
+router.post('/', protect, adminOnly, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        console.error('[upload] Multer error:', err.code, err.message);
+        return res.status(400).json({
+          message:
+            err.code === 'LIMIT_FILE_SIZE'
+              ? 'File is too large. Maximum size is 5 MB.'
+              : 'Upload rejected by the server.',
+          code: err.code
+        });
+      }
+
+      console.error('[upload] Validation error:', err.message);
+      return res.status(400).json({
+        message: err.message || 'Unsupported file type.',
+        code: 'INVALID_FILE_TYPE'
+      });
+    }
+
+    next();
+  });
+}, uploadFile);
 
 export default router;

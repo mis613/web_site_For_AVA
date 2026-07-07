@@ -188,7 +188,7 @@ To become the most trusted financial and business advisory partner by delivering
             <h2 className="mt-2 text-[36px] font-semibold tracking-tight text-ink sm:text-[40px]">
               Professional Financial Solutions for Modern Businesses
             </h2>
-            <p className="mt-3 max-w-3xl text-[1rem] font-normal leading-8 text-muted">
+            <p className="mt-5 max-w-3xl text-[1rem] font-normal leading-8 text-muted">
               Focused support for financial compliance, reporting, and strategic advisory.
             </p>
           </Reveal>

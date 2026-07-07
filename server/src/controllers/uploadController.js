@@ -13,7 +13,10 @@ const ensureUploadsDir = () => {
 export const uploadFile = asyncHandler(async (req, res) => {
   const file = req.file;
   const resourceType = req.body.resourceType === 'video' ? 'video' : 'image';
-  const allowedMimeTypes = new Set(['image/jpeg', 'image/png']);
+  const allowedMimeTypes =
+    resourceType === 'video'
+      ? new Set(['video/mp4', 'video/webm', 'video/quicktime'])
+      : new Set(['image/jpeg', 'image/png']);
 
   if (!file) {
     return res.status(400).json({
@@ -21,6 +24,12 @@ export const uploadFile = asyncHandler(async (req, res) => {
       code: 'FILE_REQUIRED'
     });
   }
+
+  console.log('[upload] incoming file:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    resourceType
+  });
 
   if (!allowedMimeTypes.has(file.mimetype)) {
     if (file?.path) {
@@ -32,7 +41,9 @@ export const uploadFile = asyncHandler(async (req, res) => {
     }
 
     return res.status(400).json({
-      message: 'Only JPG and PNG images are allowed',
+      message: resourceType === 'video'
+        ? 'Only MP4, WebM, and MOV videos are allowed'
+        : 'Only JPG and PNG images are allowed',
       code: 'INVALID_FILE_TYPE'
     });
   }
@@ -40,6 +51,12 @@ export const uploadFile = asyncHandler(async (req, res) => {
   try {
     ensureUploadsDir();
     const publicUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+
+    console.log('[upload] success:', {
+      filename: file.filename,
+      publicUrl,
+      resourceType
+    });
 
     res.status(201).json({
       message: 'File uploaded successfully',
@@ -52,6 +69,7 @@ export const uploadFile = asyncHandler(async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('[upload] failed:', error);
     if (file?.path) {
       try {
         fs.unlinkSync(file.path);
