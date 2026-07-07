@@ -10,6 +10,10 @@ const sitePageSchema = new mongoose.Schema(
     seoDescription: { type: String, default: '' },
     body: { type: String, default: '' },
     secondaryBody: { type: String, default: '' },
+    heroImageUrl: { type: String, default: '' },
+    heroImagePublicId: { type: String, default: '' },
+    sectionImageUrl: { type: String, default: '' },
+    sectionImagePublicId: { type: String, default: '' },
     jsonData: { type: String, default: '[]' },
     published: { type: Boolean, default: true }
   },

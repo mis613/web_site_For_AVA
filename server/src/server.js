@@ -68,8 +68,6 @@ app.use(
   })
 );
 app.use(express.json());
-app.use('/uploads', express.static(resolve(__dirname, '../uploads')));
-
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/services', serviceRoutes);

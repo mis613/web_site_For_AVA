@@ -11,6 +11,7 @@ const emptyForm = {
   title: '',
   description: '',
   image: '',
+  imagePublicId: '',
   year: '',
   displayOrder: 0,
   status: 'Active'
@@ -117,6 +118,7 @@ export default function AchievementsAdmin() {
       title: row.title || '',
       description: row.description || '',
       image: row.image || '',
+      imagePublicId: row.imagePublicId || '',
       year: row.year || '',
       displayOrder: row.displayOrder ?? 0,
       status: row.status || 'Active'
@@ -153,6 +155,7 @@ export default function AchievementsAdmin() {
     try {
       const payload = {
         ...form,
+        imagePublicId: form.imagePublicId || '',
         year: Number(form.year),
         displayOrder: Number(form.displayOrder || 0)
       };
@@ -297,13 +300,18 @@ export default function AchievementsAdmin() {
             <textarea className="input min-h-28" value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
           </div>
           <UploadField
-            label="Achievement Image"
-            value={form.image}
-            onChange={(image) => setForm((prev) => ({ ...prev, image }))}
-            accept="image/*"
-            resourceType="image"
-            helperText="Click to choose an image or drag and drop one here."
-          />
+          label="Achievement Image"
+          value={form.image}
+          onChange={(image) => setForm((prev) => ({ ...prev, image }))}
+          accept="image/*"
+          resourceType="image"
+          helperText="Click to choose an image or drag and drop one here."
+          onUploaded={(url, result) => setForm((prev) => ({
+            ...prev,
+            image: url,
+            imagePublicId: result?.publicId || result?.public_id || ''
+          }))}
+        />
           {uploadError && <ErrorState message={uploadError} />}
           {formError && <ErrorState message={formError} />}
           <div className="flex justify-end gap-3 pt-2">

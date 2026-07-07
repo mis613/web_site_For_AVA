@@ -33,6 +33,7 @@ async function request(path, options = {}) {
 
   const response = await fetch(`${API_BASE_URL}${API_PATH_PREFIX}${path}`, {
     headers,
+    cache: options.cache || 'no-store',
     ...options
   });
 
@@ -51,7 +52,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  get: (path) => request(path),
+  get: (path, options = {}) => request(path, options),
   post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),
   put: (path, body) => request(path, { method: 'PUT', body: JSON.stringify(body) }),
   del: (path) => request(path, { method: 'DELETE' })

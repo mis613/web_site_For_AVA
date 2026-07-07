@@ -31,6 +31,8 @@ export const sitePageSeed = [
     subtitle: 'Company profile, mission, vision, timeline, and leadership.',
     body: 'We are a modern Chartered Accountant firm focused on dependable compliance, proactive financial advice, and long-term client partnerships.',
     secondaryBody: 'Mission: deliver accurate and practical financial solutions. Vision: become the most trusted advisory partner for growing businesses.',
+    heroImageUrl: 'https://res.cloudinary.com/dlh0o3f8e/image/upload/v1/ava/about/hero.jpg',
+    sectionImageUrl: 'https://res.cloudinary.com/dlh0o3f8e/image/upload/v1/ava/about/section.jpg',
     jsonData: JSON.stringify({
       values: ['Integrity', 'Professionalism', 'Innovation', 'Client Success'],
       timeline: [
@@ -80,6 +82,7 @@ export const sitePageSeed = [
     subtitle: 'Contact form, office information, Google maps, and social media links.',
     body: 'We respond to inquiries promptly and keep communication professional and confidential.',
     secondaryBody: '',
+    heroImageUrl: 'https://res.cloudinary.com/dlh0o3f8e/image/upload/v1/ava/contact/hero.jpg',
     jsonData: JSON.stringify([
       { title: 'Our Office', icon: 'office', lines: ['Dummy Office Address'] },
       { title: 'Email address', icon: 'email', lines: ['info@example.com', 'hello@example.com'] },

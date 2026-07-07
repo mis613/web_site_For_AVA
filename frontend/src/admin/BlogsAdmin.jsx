@@ -13,6 +13,7 @@ const empty = {
   excerpt: '',
   content: '',
   featuredImage: '',
+  featuredImagePublicId: '',
   category: '',
   tags: '',
   seoTitle: '',
@@ -92,6 +93,7 @@ export default function BlogsAdmin() {
     const payload = {
       ...draft,
       featuredImage: draft.featuredImage || '',
+      featuredImagePublicId: draft.featuredImagePublicId || '',
       author: String(draft.author || 'Editorial Team').trim() || 'Editorial Team',
       tags: String(draft.tags || '')
         .split(',')
@@ -152,7 +154,8 @@ export default function BlogsAdmin() {
     adminApi.uploadFile({ file, resourceType: 'image' })
       .then((result) => {
         const url = result?.data?.url || result?.data?.secureUrl || '';
-        setDraft((prev) => ({ ...prev, featuredImage: url }));
+        const publicId = result?.data?.publicId || result?.data?.public_id || result?.publicId || result?.public_id || '';
+        setDraft((prev) => ({ ...prev, featuredImage: url, featuredImagePublicId: publicId }));
         setStatusMessage('');
       })
       .catch((err) => {
@@ -161,7 +164,7 @@ export default function BlogsAdmin() {
   };
 
   const removeImage = () => {
-    setDraft((prev) => ({ ...prev, featuredImage: '' }));
+    setDraft((prev) => ({ ...prev, featuredImage: '', featuredImagePublicId: '' }));
   };
 
   return (

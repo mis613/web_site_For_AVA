@@ -33,7 +33,14 @@ export default function Dashboard() {
 
   const saveVideo = async (form) => {
     setStatus('');
-    await adminApi.saveHomeVideo(form);
+    const result = await adminApi.saveHomeVideo(form);
+    console.log('[home-video] frontend save response:', result);
+    if (result?.data) {
+      setHomeVideo({
+        videoUrl: result.data.videoUrl || result.data.secureUrl || '',
+        publicId: result.data.publicId || ''
+      });
+    }
     setStatus('Home video saved successfully.');
   };
 
@@ -97,12 +104,37 @@ export default function Dashboard() {
                 upload: true,
                 accept: 'video/*',
                 resourceType: 'video',
-                onUploaded: (url, result) => {
-                  setHomeVideo((prev) => ({
-                    ...prev,
-                    videoUrl: url,
-                    publicId: result?.publicId || result?.public_id || ''
-                  }));
+                onUploaded: async (url, result) => {
+                  const publicId = result?.publicId || result?.public_id || '';
+                  const secureUrl = result?.secureUrl || result?.secure_url || url;
+                  console.log('[home-video] frontend upload callback:', {
+                    url,
+                    publicId,
+                    secureUrl
+                  });
+
+                  setHomeVideo({
+                    videoUrl: secureUrl,
+                    publicId
+                  });
+
+                  try {
+                    const saveResult = await adminApi.saveHomeVideo({
+                      videoUrl: secureUrl,
+                      publicId
+                    });
+                    console.log('[home-video] frontend auto-save response:', saveResult);
+                    if (saveResult?.data) {
+                      setHomeVideo({
+                        videoUrl: saveResult.data.videoUrl || saveResult.data.secureUrl || secureUrl,
+                        publicId: saveResult.data.publicId || publicId
+                      });
+                    }
+                    setStatus('Home video uploaded and saved successfully.');
+                  } catch (error) {
+                    console.error('[home-video] frontend auto-save failed:', error);
+                    setStatus('Upload completed, but saving the homepage video failed.');
+                  }
                 }
               }]}
               initialValues={homeVideo}

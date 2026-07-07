@@ -1,63 +1,102 @@
 import { Router } from 'express';
 import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { adminOnly, protect } from '../middleware/authMiddleware.js';
+import { uploadBuffer } from '../services/cloudinaryService.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const uploadsDir = path.resolve(__dirname, '../../uploads');
-
-fs.mkdirSync(uploadsDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => {
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-    cb(null, `${Date.now()}-${safeName}`);
-  }
-});
-
-const allowedImageMimeTypes = new Set(['image/jpeg', 'image/png']);
-
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024
-  },
-  fileFilter: (_req, file, cb) => {
-    if (!allowedImageMimeTypes.has(file.mimetype)) {
-      return cb(new Error('Unsupported file type. Please upload a JPG or PNG image.'));
-    }
-
-    cb(null, true);
-  }
-});
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
+};
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+
+const imageMimeTypes = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
+const videoMimeTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
 
 router.post('/', protect, adminOnly, (req, res, next) => {
-  upload.single('file')(req, res, (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) {
       if (err instanceof multer.MulterError) {
-        console.error('[image upload] Multer error:', err.code, err.message);
+        console.error('[media upload] Multer error:', err.code, err.message);
         return res.status(400).json({
-          message:
-            err.code === 'LIMIT_FILE_SIZE'
-              ? 'File is too large. Maximum size is 5 MB.'
-              : 'Upload rejected by the server.',
+          success: false,
+          message: err.code === 'LIMIT_FILE_SIZE' ? 'File is too large.' : 'Upload rejected by the server.',
           code: err.code
         });
       }
 
-      console.error('[image upload] Validation error:', err.message);
+      console.error('[media upload] Validation error:', err.message);
       return res.status(400).json({
+        success: false,
         message: err.message || 'Unsupported file type.',
         code: 'INVALID_FILE_TYPE'
       });
     }
 
-    next();
+    try {
+      const file = req.file;
+      const resourceType = String(req.body.resourceType || 'image').toLowerCase();
+      if (!file) {
+        return res.status(400).json({ success: false, message: 'File is required', code: 'FILE_REQUIRED' });
+      }
+
+      devLog('[media upload] started:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        resourceType
+      });
+
+      if (resourceType === 'video' && !videoMimeTypes.has(file.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Only MP4, WebM, and MOV videos are allowed',
+          code: 'INVALID_FILE_TYPE'
+        });
+      }
+
+      if (resourceType !== 'video' && !imageMimeTypes.has(file.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Only JPG, JPEG, PNG, and WebP images are allowed',
+          code: 'INVALID_FILE_TYPE'
+        });
+      }
+
+      const folder = resourceType === 'video' ? 'ava/homepage-videos' : 'ava/uploads';
+      const result = await uploadBuffer({
+        buffer: file.buffer,
+        resourceType,
+        folder
+      });
+
+      devLog('[media upload] success:', {
+        resourceType,
+        publicId: result.public_id,
+        secureUrl: result.secure_url
+      });
+
+      res.status(201).json({
+        success: true,
+        url: result.secure_url,
+        secureUrl: result.secure_url,
+        publicId: result.public_id,
+        resourceType: result.resource_type,
+        data: {
+          url: result.secure_url,
+          secureUrl: result.secure_url,
+          publicId: result.public_id,
+          resourceType: result.resource_type
+        }
+      });
+    } catch (uploadError) {
+      console.error('[media upload] failed:', uploadError);
+      return res.status(500).json({
+        success: false,
+        message: 'Cloudinary upload failed',
+        code: 'UPLOAD_FAILED'
+      });
+    }
   });
 });
 

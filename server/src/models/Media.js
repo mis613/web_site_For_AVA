@@ -5,6 +5,7 @@ const mediaSchema = new mongoose.Schema(
     type: { type: String, required: true, unique: true },
     videoUrl: { type: String, required: true },
     publicId: { type: String, default: '' },
+    videoPublicId: { type: String, default: '' },
     resourceType: { type: String, default: 'video' }
   },
   { timestamps: true }

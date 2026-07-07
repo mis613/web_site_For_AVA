@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import cloudinary from '../config/cloudinary.js';
-import streamifier from 'streamifier';
+import Media from '../models/Media.js';
+import { uploadBuffer } from '../services/cloudinaryService.js';
 
 const allowedVideoMimeTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
 
@@ -15,11 +15,11 @@ export const uploadHomeVideo = asyncHandler(async (req, res) => {
     });
   }
 
-  console.log('[home-video upload] started:', {
-    originalname: file.originalname,
-    mimetype: file.mimetype,
-    size: file.size
-  });
+    console.log('[home-video upload] started:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    });
 
   if (!allowedVideoMimeTypes.has(file.mimetype)) {
     return res.status(400).json({
@@ -29,24 +29,12 @@ export const uploadHomeVideo = asyncHandler(async (req, res) => {
     });
   }
 
-  try {
-    const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'video',
-          folder: 'ava/homepage-videos'
-        },
-        (error, uploadResult) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve(uploadResult);
-        }
-      );
-
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
-    });
+    try {
+      const result = await uploadBuffer({
+        buffer: file.buffer,
+        resourceType: 'video',
+        folder: 'ava/homepage-videos'
+      });
 
     console.log('[home-video upload] success:', {
       publicId: result.public_id,
@@ -54,12 +42,43 @@ export const uploadHomeVideo = asyncHandler(async (req, res) => {
       resourceType: result.resource_type
     });
 
+    console.log('[home-video upload] persisting uploaded URL to database:', {
+      videoUrl: result.secure_url,
+      publicId: result.public_id
+    });
+
+    const savedMedia = await Media.findOneAndUpdate(
+      { type: 'home_video' },
+      {
+        type: 'home_video',
+        videoUrl: result.secure_url,
+        publicId: result.public_id,
+        videoPublicId: result.public_id,
+        resourceType: result.resource_type || 'video'
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    ).lean();
+
+    console.log('[home-video upload] database save complete:', {
+      videoUrl: savedMedia.videoUrl,
+      publicId: savedMedia.publicId || '',
+      updatedAt: savedMedia.updatedAt
+    });
+
     res.status(201).json({
       success: true,
       url: result.secure_url,
+      videoUrl: result.secure_url,
       publicId: result.public_id,
+      videoPublicId: result.public_id,
       resourceType: result.resource_type,
-      secureUrl: result.secure_url
+      secureUrl: result.secure_url,
+      data: {
+        videoUrl: savedMedia.videoUrl,
+        publicId: savedMedia.publicId || '',
+        secureUrl: result.secure_url,
+        updatedAt: savedMedia.updatedAt
+      }
     });
   } catch (error) {
     console.error('[home-video upload] failed:', error);

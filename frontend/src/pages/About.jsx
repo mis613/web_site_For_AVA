@@ -43,16 +43,16 @@ const processSteps = [
 ];
 
 const teamPreview = [
-  { name: 'Amit Sharma', designation: 'Managing Partner', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80' },
-  { name: 'Neha Gupta', designation: 'Tax Advisory Lead', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80' },
-  { name: 'Rahul Verma', designation: 'Compliance Manager', photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=80' }
+  { name: 'Amit Sharma', designation: 'Managing Partner', photo: '' },
+  { name: 'Neha Gupta', designation: 'Tax Advisory Lead', photo: '' },
+  { name: 'Rahul Verma', designation: 'Compliance Manager', photo: '' }
 ];
 
 const testimonials = siteTestimonials.map((item, index) => ({
   ...item,
   photo: [
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80'
+    '',
+    ''
   ][index % 2]
 }));
 
@@ -167,6 +167,8 @@ export default function About() {
   const timeline = parsed.timeline || fallback.timeline;
   const leadershipText = parsed.leadershipText || fallback.leadershipText;
   const teamMembers = teamData.data?.data || [];
+  const heroImageUrl = page.heroImageUrl || '';
+  const sectionImageUrl = page.sectionImageUrl || '';
 
   const aboutStats = useMemo(
     () => [
@@ -250,11 +252,11 @@ export default function About() {
                   
                 </div>
                 <div className="overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.14)]">
-                  <img
-                    src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=80"
-                    alt="Professional office"
-                    className="h-[420px] w-full object-cover md:h-[540px]"
-                  />
+                  {heroImageUrl ? (
+                    <img src={heroImageUrl} alt="Professional office" className="h-[420px] w-full object-cover md:h-[540px]" />
+                  ) : (
+                    <div className="h-[420px] w-full bg-slate-200 md:h-[540px]" />
+                  )}
                 </div>
               </motion.div>
             </div>
@@ -271,11 +273,11 @@ export default function About() {
               variants={itemVariants}
               className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
             >
-              <img
-                src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80"
-                alt="Company overview"
-                className="h-full min-h-[340px] w-full object-cover"
-              />
+                {sectionImageUrl ? (
+                  <img src={sectionImageUrl} alt="Company overview" className="h-full min-h-[340px] w-full object-cover" />
+                ) : (
+                  <div className="h-full min-h-[340px] w-full bg-slate-200" />
+                )}
               <div className="absolute bottom-5 left-5 rounded-2xl border border-white/60 bg-white/85 px-4 py-3 shadow-lg backdrop-blur">
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Experience</p>
                 <p className="mt-1 text-2xl font-bold text-[#0F172A] ">15+ Years</p>

@@ -5,6 +5,7 @@ const blogSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true, trim: true },
   author: { type: String, default: 'Editorial Team', trim: true },
   featuredImage: { type: String, default: '' },
+  featuredImagePublicId: { type: String, default: '' },
   excerpt: { type: String, required: true, trim: true },
   content: { type: String, required: true, trim: true },
   category: { type: String, default: '', trim: true },

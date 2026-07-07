@@ -1,6 +1,11 @@
 import asyncHandler from 'express-async-handler';
 import Blog from '../models/Blog.js';
 import { sanitizeRichHtml } from '../utils/sanitizeHtml.js';
+import { deleteCloudinaryAsset } from '../services/cloudinaryService.js';
+
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
+};
 
 function normalizeBlogPayload(payload) {
   const next = { ...payload };
@@ -17,7 +22,11 @@ function normalizeBlogPayload(payload) {
   if (!next.featuredImage && next.coverImage) {
     next.featuredImage = next.coverImage;
   }
+  if (!next.featuredImagePublicId && next.coverImagePublicId) {
+    next.featuredImagePublicId = next.coverImagePublicId;
+  }
   delete next.coverImage;
+  delete next.coverImagePublicId;
   return next;
 }
 
@@ -67,18 +76,38 @@ export const createBlog = asyncHandler(async (req, res) => {
 });
 
 export const updateBlog = asyncHandler(async (req, res) => {
+  const existing = await Blog.findById(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Blog not found' });
   const payload = normalizeBlogPayload(req.body);
   const message = validateBlogPayload(payload);
   if (message) return res.status(400).json({ message });
   if (!(await ensureBlogSlugAvailable(payload.slug, req.params.id))) {
     return res.status(400).json({ message: 'Slug already exists' });
   }
+  if (existing.featuredImagePublicId && payload.featuredImagePublicId && existing.featuredImagePublicId !== payload.featuredImagePublicId) {
+    try {
+      devLog('[blog] deleting previous Cloudinary asset:', existing.featuredImagePublicId);
+      await deleteCloudinaryAsset(existing.featuredImagePublicId, 'image');
+      devLog('[blog] deleted previous Cloudinary asset:', existing.featuredImagePublicId);
+    } catch (error) {
+      console.error('[blog] failed to delete previous Cloudinary asset:', existing.featuredImagePublicId, error);
+    }
+  }
   const blog = await Blog.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
-  if (!blog) return res.status(404).json({ message: 'Blog not found' });
   res.json({ data: blog });
 });
 
 export const deleteBlog = asyncHandler(async (req, res) => {
+  const existing = await Blog.findById(req.params.id);
+  if (existing?.featuredImagePublicId) {
+    try {
+      devLog('[blog] deleting Cloudinary asset on delete:', existing.featuredImagePublicId);
+      await deleteCloudinaryAsset(existing.featuredImagePublicId, 'image');
+      devLog('[blog] deleted Cloudinary asset on delete:', existing.featuredImagePublicId);
+    } catch (error) {
+      console.error('[blog] failed to delete Cloudinary asset on delete:', existing.featuredImagePublicId, error);
+    }
+  }
   await Blog.findByIdAndDelete(req.params.id);
   res.json({ message: 'Deleted' });
 });

@@ -32,6 +32,7 @@ const iconPaths = {
 export default function Contact() {
   const { data, loading, error } = useFetch('/site-pages', []);
   const page = data?.data?.find((item) => item.slug === 'contact') || fallback;
+  const heroImageUrl = page.heroImageUrl || '';
   let contactBlocks = defaultBlocks;
 
   try {
@@ -55,9 +56,10 @@ export default function Contact() {
 
       <section
         className="relative flex min-h-[380px] items-center overflow-hidden bg-cover bg-center bg-no-repeat py-12"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1600&q=80')"
+          style={{
+          backgroundImage: heroImageUrl
+            ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${heroImageUrl}')`
+            : 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), linear-gradient(135deg,#1f2937,#111827)'
         }}
       >
         <div className="container-page relative z-10">

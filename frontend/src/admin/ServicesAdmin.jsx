@@ -6,8 +6,7 @@ import ErrorState from '../components/ErrorState';
 import AdminTable from '../components/AdminTable';
 import CrudForm from '../components/CrudForm';
 import { adminApi } from '../services/adminApi';
-
-const empty = { title: '', description: '', benefits: '' };
+const empty = { title: '', description: '', benefits: '', imageUrl: '', imagePublicId: '' };
 
 export default function ServicesAdmin() {
   const { data, loading, error, setData } = useFetch('/admin/services', []);
@@ -43,9 +42,24 @@ export default function ServicesAdmin() {
           fields={[
             { name: 'title', label: 'Title' },
             { name: 'description', label: 'Description', type: 'textarea', full: true },
-            { name: 'benefits', label: 'Benefits (comma separated)', type: 'textarea', full: true }
+            { name: 'benefits', label: 'Benefits (comma separated)', type: 'textarea', full: true },
+            {
+              name: 'imageUrl',
+              label: 'Service Image',
+              upload: true,
+              accept: 'image/*',
+              resourceType: 'image',
+              full: true,
+              onUploaded: (imageUrl, result) => {
+                setEditing((prev) => ({
+                  ...(prev || empty),
+                  imageUrl,
+                  imagePublicId: result?.publicId || result?.public_id || ''
+                }));
+              }
+            }
           ]}
-          initialValues={editing ? { ...editing, benefits: (editing.benefits || []).join(', ') } : empty}
+          initialValues={editing ? { ...editing, benefits: (editing.benefits || []).join(', '), imageUrl: editing.imageUrl || '', imagePublicId: editing.imagePublicId || '' } : empty}
           onSubmit={submit}
           submitLabel={editing ? 'Update Service' : 'Create Service'}
         />

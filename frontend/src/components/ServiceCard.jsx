@@ -1,6 +1,9 @@
-export default function ServiceCard({ title, desc, benefits = [] }) {
+export default function ServiceCard({ title, desc, benefits = [], imageUrl = '' }) {
   return (
     <article className="card bg-purple-900 p-6 text-white md:p-6">
+      {imageUrl ? (
+        <img src={imageUrl} alt={title} className="mb-4 h-48 w-full rounded-2xl object-cover" />
+      ) : null}
       <h3 className="text-[1.25rem] font-semibold leading-tight text-white">
         {title}
       </h3>

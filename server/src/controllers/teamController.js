@@ -1,5 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import TeamMember from '../models/TeamMember.js';
+import { deleteCloudinaryAsset } from '../services/cloudinaryService.js';
+
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
+};
 
 function normalizeTeamMember(payload = {}) {
   return {
@@ -8,6 +13,7 @@ function normalizeTeamMember(payload = {}) {
     qualification: payload.qualification?.trim() || '',
     experience: payload.experience?.trim() || '',
     photo: payload.photo || '',
+    photoPublicId: payload.photoPublicId || '',
     displayOrder: Number(payload.displayOrder ?? 0),
     status: payload.status === 'Inactive' ? 'Inactive' : 'Active',
     expertise: payload.expertise?.trim() || '',
@@ -41,20 +47,42 @@ export const createTeamMember = asyncHandler(async (req, res) => {
 });
 
 export const updateTeamMember = asyncHandler(async (req, res) => {
+  const existing = await TeamMember.findById(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: 'Team member not found' });
+  }
   const payload = normalizeTeamMember(req.body);
   const message = validateTeamMember(payload);
   if (message) return res.status(400).json({ message });
-  const member = await TeamMember.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
-  if (!member) {
-    return res.status(404).json({ message: 'Team member not found' });
+
+  if (existing.photoPublicId && payload.photoPublicId && existing.photoPublicId !== payload.photoPublicId) {
+    try {
+      devLog('[team] deleting previous Cloudinary asset:', existing.photoPublicId);
+      await deleteCloudinaryAsset(existing.photoPublicId, 'image');
+      devLog('[team] deleted previous Cloudinary asset:', existing.photoPublicId);
+    } catch (error) {
+      console.error('[team] failed to delete previous Cloudinary asset:', existing.photoPublicId, error);
+    }
   }
+
+  const member = await TeamMember.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
   res.json({ data: member });
 });
 
 export const deleteTeamMember = asyncHandler(async (req, res) => {
-  const member = await TeamMember.findByIdAndDelete(req.params.id);
+  const member = await TeamMember.findById(req.params.id);
   if (!member) {
     return res.status(404).json({ message: 'Team member not found' });
   }
+  if (member.photoPublicId) {
+    try {
+      devLog('[team] deleting Cloudinary asset on delete:', member.photoPublicId);
+      await deleteCloudinaryAsset(member.photoPublicId, 'image');
+      devLog('[team] deleted Cloudinary asset on delete:', member.photoPublicId);
+    } catch (error) {
+      console.error('[team] failed to delete Cloudinary asset on delete:', member.photoPublicId, error);
+    }
+  }
+  await TeamMember.findByIdAndDelete(req.params.id);
   res.json({ message: 'Deleted' });
 });

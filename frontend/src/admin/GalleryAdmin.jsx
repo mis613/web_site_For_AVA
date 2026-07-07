@@ -9,6 +9,7 @@ import UploadField from './components/UploadField';
 const pageSize = 6;
 const emptyForm = {
   image: '',
+  imagePublicId: '',
   title: '',
   category: '',
   displayOrder: 0,
@@ -81,6 +82,10 @@ function GalleryForm({ value, onChange, onSubmit, onCancel, saving, uploadError,
         resourceType="image"
         helperText="Drop files here or click to upload."
         onFilesUploaded={onMultiUpload}
+        onUploaded={(image, result) => onChange({
+          image,
+          imagePublicId: result?.publicId || result?.public_id || ''
+        })}
       />
       {uploadError && <ErrorState message={uploadError} />}
       <div className="flex justify-end gap-3 pt-2">
@@ -181,6 +186,7 @@ export default function GalleryAdmin() {
     setEditingIndex(index);
     setForm({
       image: item.image || '',
+      imagePublicId: item.imagePublicId || '',
       title: item.title || '',
       category: item.category || '',
       displayOrder: item.displayOrder ?? 0,
@@ -212,6 +218,7 @@ export default function GalleryAdmin() {
     }
     const nextItem = {
       image: form.image,
+      imagePublicId: form.imagePublicId || '',
       title: form.title.trim(),
       category: form.category.trim(),
       displayOrder: Number(form.displayOrder || 0),
@@ -246,15 +253,15 @@ export default function GalleryAdmin() {
     const nextItems = [
       ...items,
       ...uploads
-        .map((result, index) => result?.data?.url || result?.data?.secureUrl || '')
-        .filter(Boolean)
-        .map((image, index) => ({
-          image,
+        .map((result, index) => ({
+          image: result?.data?.url || result?.data?.secureUrl || '',
+          imagePublicId: result?.data?.publicId || result?.data?.public_id || result?.publicId || result?.public_id || '',
           title: `Image ${items.length + index + 1}`,
           category: 'General',
           displayOrder: items.length + index + 1,
           status: 'Active'
         }))
+        .filter(Boolean)
     ];
     await savePage(nextItems);
     pushToast('Images uploaded');

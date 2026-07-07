@@ -1,5 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import SitePage from '../models/SitePage.js';
+import { deleteCloudinaryAsset } from '../services/cloudinaryService.js';
+
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
+};
 
 function normalizeSitePagePayload(payload = {}) {
   return {
@@ -22,6 +27,15 @@ function validateSitePagePayload(payload) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.slug)) return 'Slug may only contain lowercase letters, numbers, and hyphens';
   if (!payload.title) return 'Title is required';
   return '';
+}
+
+function parseGalleryItems(jsonData) {
+  try {
+    const parsed = JSON.parse(jsonData || '[]');
+    return Array.isArray(parsed) ? parsed : parsed.gallery || [];
+  } catch {
+    return [];
+  }
 }
 
 export const getSitePages = asyncHandler(async (req, res) => {
@@ -54,6 +68,24 @@ export const upsertSitePageBySlugAdmin = (slug) => asyncHandler(async (req, res)
     const existing = await SitePage.findOne({ slug });
     if (existing && String(existing._id) !== String(req.params.id || existing._id)) {
       return res.status(400).json({ message: 'Slug already exists' });
+    }
+  }
+
+  if (slug === 'gallery') {
+    const existing = await SitePage.findOne({ slug });
+    const previousItems = parseGalleryItems(existing?.jsonData);
+    const nextItems = parseGalleryItems(payload.jsonData);
+    const nextPublicIds = new Set(nextItems.map((item) => item?.imagePublicId).filter(Boolean));
+    const removedItems = previousItems.filter((item) => item?.imagePublicId && !nextPublicIds.has(item.imagePublicId));
+
+    for (const item of removedItems) {
+      try {
+        devLog('[gallery] deleting previous Cloudinary asset:', item.imagePublicId);
+        await deleteCloudinaryAsset(item.imagePublicId, 'image');
+        devLog('[gallery] deleted previous Cloudinary asset:', item.imagePublicId);
+      } catch (error) {
+        console.error('[gallery] failed to delete previous Cloudinary asset:', item.imagePublicId, error);
+      }
     }
   }
 

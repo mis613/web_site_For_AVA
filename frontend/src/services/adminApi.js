@@ -100,7 +100,6 @@ export const adminApi = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('resourceType', resourceType);
-    const path = resourceType === 'video' ? '/home-video/upload' : '/uploads';
-    return uploadMultipart(path, formData, onProgress);
+    return uploadMultipart('/uploads', formData, onProgress);
   }
 };

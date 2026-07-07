@@ -61,15 +61,25 @@ const serviceCardVariants = {
 
 export default function Home() {
   const [homeVideoUrl, setHomeVideoUrl] = useState('');
+  const [homeVideoVersion, setHomeVideoVersion] = useState('');
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     let active = true;
 
     api
-      .get('/home-video')
+      .get('/home-video', { cache: 'no-store' })
       .then((data) => {
-        if (active) setHomeVideoUrl(data?.videoUrl || '');
+        if (active) {
+          const resolvedVideoUrl = data?.videoUrl || data?.secureUrl || '';
+          setHomeVideoUrl(resolvedVideoUrl);
+          setHomeVideoVersion(data?.updatedAt || data?.publicId || '');
+          console.log('[home-video] frontend fetched:', {
+            videoUrl: resolvedVideoUrl,
+            publicId: data?.publicId || '',
+            updatedAt: data?.updatedAt || ''
+          });
+        }
       })
       .catch(() => {
         if (active) setHomeVideoUrl('');
@@ -101,7 +111,8 @@ export default function Home() {
           {homeVideoUrl ? (
             <video
               className="h-full w-full object-cover"
-              src={homeVideoUrl}
+              key={`${homeVideoUrl}-${homeVideoVersion}`}
+              src={homeVideoVersion ? `${homeVideoUrl}${homeVideoUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(homeVideoVersion)}` : homeVideoUrl}
               autoPlay
               muted
               loop

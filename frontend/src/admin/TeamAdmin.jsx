@@ -13,6 +13,7 @@ const emptyForm = {
   qualification: '',
   experience: '',
   photo: '',
+  photoPublicId: '',
   displayOrder: 0,
   status: 'Active'
 };
@@ -117,6 +118,10 @@ function TeamForm({ value, onChange, onSubmit, onCancel, saving, uploadError }) 
         accept="image/*"
         resourceType="image"
         helperText="Click to choose a profile image or drag and drop one here."
+        onUploaded={(url, result) => onChange({
+          photo: url,
+          photoPublicId: result?.publicId || result?.public_id || ''
+        })}
       />
       {uploadError && <p className="text-sm text-rose-700">{uploadError}</p>}
       <div className="flex justify-end gap-3 pt-2">
@@ -191,6 +196,7 @@ export default function TeamAdmin() {
       qualification: row.qualification || '',
       experience: row.experience || '',
       photo: row.photo || '',
+      photoPublicId: row.photoPublicId || '',
       displayOrder: row.displayOrder ?? 0,
       status: row.status || 'Active'
     });
@@ -226,6 +232,7 @@ export default function TeamAdmin() {
     try {
       const payload = {
         ...form,
+        photoPublicId: form.photoPublicId || '',
         displayOrder: Number(form.displayOrder || 0)
       };
       if (editing?._id) await adminApi.updateTeam(editing._id, payload);
