@@ -22,13 +22,13 @@ export default function Dashboard() {
   const team = useFetch('/team', []);
   const blogs = useFetch('/blogs', []);
   const inquiries = useFetch('/contact', []);
-  const [homeVideo, setHomeVideo] = useState({ videoUrl: '' });
+  const [homeVideo, setHomeVideo] = useState({ videoUrl: '', publicId: '' });
   const [status, setStatus] = useState('');
 
   useEffect(() => {
     adminApi.getHomeVideo()
-      .then((data) => setHomeVideo({ videoUrl: data.videoUrl || '' }))
-      .catch(() => setHomeVideo({ videoUrl: '' }));
+      .then((data) => setHomeVideo({ videoUrl: data.videoUrl || '', publicId: data.publicId || '' }))
+      .catch(() => setHomeVideo({ videoUrl: '', publicId: '' }));
   }, []);
 
   const saveVideo = async (form) => {
@@ -90,7 +90,21 @@ export default function Dashboard() {
           </div>
           <div className="rounded-3xl border border-white/60 bg-white p-6 shadow-[0_8px_30px_rgba(17,24,39,0.05)]">
             <CrudForm
-              fields={[{ name: 'videoUrl', label: 'Video', full: true, upload: true, accept: 'video/*', resourceType: 'video' }]}
+              fields={[{
+                name: 'videoUrl',
+                label: 'Video',
+                full: true,
+                upload: true,
+                accept: 'video/*',
+                resourceType: 'video',
+                onUploaded: (url, result) => {
+                  setHomeVideo((prev) => ({
+                    ...prev,
+                    videoUrl: url,
+                    publicId: result?.publicId || result?.public_id || ''
+                  }));
+                }
+              }]}
               initialValues={homeVideo}
               onSubmit={saveVideo}
               submitLabel="Save"

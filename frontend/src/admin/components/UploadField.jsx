@@ -47,7 +47,7 @@ export default function UploadField({
         resourceType,
         onProgress: setProgress
       });
-      const url = result?.data?.url || result?.data?.secureUrl || '';
+      const url = result?.url || result?.secureUrl || result?.data?.url || result?.data?.secureUrl || '';
       onChange(url);
       onUploaded?.(url, result);
     } catch (err) {
@@ -66,9 +66,9 @@ export default function UploadField({
       setProgress(0);
       setLocalError('');
       onUploadingChange?.(true);
-      try {
-        const results = [];
-        for (let index = 0; index < list.length; index += 1) {
+          try {
+            const results = [];
+            for (let index = 0; index < list.length; index += 1) {
           const file = list[index];
           const result = await adminApi.uploadFile({
             file,
@@ -79,7 +79,7 @@ export default function UploadField({
             }
           });
           results.push(result);
-        }
+          }
         onFilesUploaded?.(results);
       } catch (err) {
         setLocalError(err.message);

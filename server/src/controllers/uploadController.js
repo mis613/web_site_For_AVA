@@ -1,84 +1,71 @@
 import asyncHandler from 'express-async-handler';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import cloudinary from '../config/cloudinary.js';
+import streamifier from 'streamifier';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const uploadsDir = path.resolve(__dirname, '../../uploads');
+const allowedVideoMimeTypes = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
 
-const ensureUploadsDir = () => {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-};
-
-export const uploadFile = asyncHandler(async (req, res) => {
+export const uploadHomeVideo = asyncHandler(async (req, res) => {
   const file = req.file;
-  const resourceType = req.body.resourceType === 'video' ? 'video' : 'image';
-  const allowedMimeTypes =
-    resourceType === 'video'
-      ? new Set(['video/mp4', 'video/webm', 'video/quicktime'])
-      : new Set(['image/jpeg', 'image/png']);
 
   if (!file) {
     return res.status(400).json({
+      success: false,
       message: 'File is required',
       code: 'FILE_REQUIRED'
     });
   }
 
-  console.log('[upload] incoming file:', {
+  console.log('[home-video upload] started:', {
     originalname: file.originalname,
     mimetype: file.mimetype,
-    resourceType
+    size: file.size
   });
 
-  if (!allowedMimeTypes.has(file.mimetype)) {
-    if (file?.path) {
-      try {
-        fs.unlinkSync(file.path);
-      } catch {
-        // ignore cleanup errors
-      }
-    }
-
+  if (!allowedVideoMimeTypes.has(file.mimetype)) {
     return res.status(400).json({
-      message: resourceType === 'video'
-        ? 'Only MP4, WebM, and MOV videos are allowed'
-        : 'Only JPG and PNG images are allowed',
+      success: false,
+      message: 'Only MP4, WebM, and MOV videos are allowed',
       code: 'INVALID_FILE_TYPE'
     });
   }
 
   try {
-    ensureUploadsDir();
-    const publicUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'video',
+          folder: 'ava/homepage-videos'
+        },
+        (error, uploadResult) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(uploadResult);
+        }
+      );
 
-    console.log('[upload] success:', {
-      filename: file.filename,
-      publicUrl,
-      resourceType
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
+
+    console.log('[home-video upload] success:', {
+      publicId: result.public_id,
+      secureUrl: result.secure_url,
+      resourceType: result.resource_type
     });
 
     res.status(201).json({
-      message: 'File uploaded successfully',
-      data: {
-        url: publicUrl,
-        secureUrl: publicUrl,
-        filename: file.filename,
-        mimetype: file.mimetype,
-        resourceType
-      }
+      success: true,
+      url: result.secure_url,
+      publicId: result.public_id,
+      resourceType: result.resource_type,
+      secureUrl: result.secure_url
     });
   } catch (error) {
-    console.error('[upload] failed:', error);
-    if (file?.path) {
-      try {
-        fs.unlinkSync(file.path);
-      } catch {
-        // ignore cleanup errors
-      }
-    }
+    console.error('[home-video upload] failed:', error);
     res.status(500).json({
-      message: 'Upload failed',
+      success: false,
+      message: 'Cloudinary upload failed',
       code: 'UPLOAD_FAILED'
     });
   }

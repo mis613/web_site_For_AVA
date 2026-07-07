@@ -29,6 +29,8 @@ export default function CrudForm({ fields, initialValues, onSubmit, submitLabel 
                 accept={field.accept || (field.resourceType === 'video' ? 'video/*' : 'image/*')}
                 resourceType={field.resourceType || (field.accept?.includes('video') ? 'video' : 'image')}
                 helperText={field.helperText || 'Click to choose a file or drag and drop it here.'}
+                onUploaded={field.onUploaded}
+                onFilesUploaded={field.onFilesUploaded}
               />
             ) : field.type === 'textarea' ? (
               <textarea className="input min-h-32" value={form[field.name] || ''} onChange={(e) => updateField(field.name, e.target.value)} />
